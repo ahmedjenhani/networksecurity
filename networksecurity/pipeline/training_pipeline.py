@@ -95,7 +95,8 @@ class TrainingPipeline:
         except Exception as e:
             raise NetworkSecurityException(e,sys)
         
-    ## local final model is going to s3 bucket 
+    ## local final model is going to s3 bucket
+    """
         
     def sync_saved_model_dir_to_s3(self):
         try:
@@ -118,6 +119,51 @@ class TrainingPipeline:
             
             return model_trainer_artifact
         except Exception as e:
-            raise NetworkSecurityException(e,sys)
+            raise NetworkSecurityException(e,sys) """
         
+        
+        import os
+import sys
+
+class GCSync:
+    def sync_folder_to_gcs(self, folder, https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/):
+        command = f"gsutil -m rsync -r {Artifacts} {https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/}"
+        os.system(command)
+
+    def sync_folder_from_gcs(self, folder, https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/):
+        command = f"gsutil -m rsync -r {https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/} {Artifacts}"
+        os.system(command)
+
+class TrainingPipeline:
+    def __init__(self, training_pipeline_config):
+        self.training_pipeline_config = training_pipeline_config
+        self.gcs_sync = GCSync()
+
+    def sync_artifact_dir_to_gcs(self):
+        try:
+            https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/ = f"gs:// {TRAINING_BUCKET_NAME}/artifact/{self.training_pipeline_config.timestamp}"
+            self.gcs_sync.sync_folder_to_gcs(folder = self.training_pipeline_config.artifact_dir, https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/=https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/)
+        except Exception as e:
+            raise NetworkSecurityException(e, sys)
+
+    def sync_saved_model_dir_to_gcs(self):
+        try:
+            https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/ = f"gs://{TRAINING_BUCKET_NAME}/final_model/{self.training_pipeline_config.timestamp}"
+            self.gcs_sync.sync_folder_to_gcs(folder=self.training_pipeline_config.model_dir, https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/=https://storage.cloud.google.com/{itbsml}/{ITBSMLPROJET/)
+        except Exception as e:
+            raise NetworkSecurityException(e, sys)
+
+    def run_pipeline(self):
+        try:
+            data_ingestion_artifact = self.start_data_ingestion()
+            data_validation_artifact = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
+            data_transformation_artifact = self.start_data_transformation(data_validation_artifact=data_validation_artifact)
+            model_trainer_art = self.start_model_trainer(data_trans formation_artifact=data_transformation_artifact)
+            
+            self.sync_artifact_dir_to_gcs()
+            self.sync_saved_model_dir_to_gcs()
+            
+            return model_trainer_artifact
+        except Exception as e:
+            raise NetworkSecurityException(e, sys)
     
